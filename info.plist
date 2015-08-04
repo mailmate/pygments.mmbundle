@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>contactEmailRot13</key>
+	<string>zz-ohaqyrf@sereba.pbz</string>
+	<key>contactName</key>
+	<string>Benny Kjær Nielsen</string>
+	<key>description</key>
+	<string>Code styling using the Pygments syntax highlighter</string>
+	<key>name</key>
+	<string>Pygments</string>
+	<key>uuid</key>
+	<string>68B2D8A4-B019-4E68-B02B-2BDE68556E21</string>
+</dict>
+</plist>

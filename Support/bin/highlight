@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Note: In order to load custom styles it is probably necessary to change this file to Python code.
+#  Example custom styles: https://pypi.python.org/pypi/pygments-style-solarized
+#                         https://pypi.python.org/pypi/pygments-style-github
+
+STYLE=`defaults read com.freron.MailMate MmDefaultPygmentsStyleName 2>/dev/null`
+COMMAND=/usr/local/bin/pygmentize
+
+if [ -f ${COMMAND} ]; then
+	${COMMAND} -f html -O noclasses=1,style=${STYLE:-colorful} -l "${CODE_LANGUAGE}"
+else
+	osascript <<END
+tell application "Terminal"
+	tell application "System Events" to display dialog "The code styling feature in MailMate requires Pygments to be installed." buttons {"Cancel", "Install"} default button 2 with title "Install Pygments"
+	set theTab to do script "sudo easy_install pygments"
+	set theWindow to front window
+	activate
+	repeat
+		delay 1
+		if not busy of theTab then exit repeat
+	end repeat
+	if first tab of theWindow is theTab then
+		close theWindow
+	end if
+end tell
+END
+fi
