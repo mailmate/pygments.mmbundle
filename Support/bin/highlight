@@ -5,10 +5,10 @@
 #                         https://pypi.python.org/pypi/pygments-style-github
 
 STYLE=`defaults read com.freron.MailMate MmDefaultPygmentsStyleName 2>/dev/null`
-COMMAND=/usr/local/bin/pygmentize
+PATH="${PATH}:/usr/local/bin/"
 
-if [ -f ${COMMAND} ]; then
-	${COMMAND} -f html -O noclasses=1,style=${STYLE:-colorful} -l "${CODE_LANGUAGE}"
+if which -s pygmentize; then
+	pygmentize -f html -O noclasses=1,style=${STYLE:-colorful} -l "${CODE_LANGUAGE}"
 else
 	osascript <<END
 tell application "Terminal"
