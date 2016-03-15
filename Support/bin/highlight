@@ -1,4 +1,4 @@
 #!/bin/bash
 
 STYLE=`defaults read com.freron.MailMate MmDefaultPygmentsStyleName 2>/dev/null`
-"${MM_BUNDLE_SUPPORT}/vendor/pygmentize" -f html -O noclasses=1,style=${STYLE:-colorful} -l "${CODE_LANGUAGE}"
+"${MM_BUNDLE_SUPPORT}/vendor/pygmentize" -f html -O noclasses=1,nowrap=1,style=${STYLE:-colorful} -l "${CODE_LANGUAGE}"
