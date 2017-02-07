@@ -1,6 +1,6 @@
 # Installation
 
-You can install this bundle in MailMate by opening the preferences and going to the bundles tab. After installation, go to composer settings and select Pygments from the dropdown menu of "Highlight code using"
+You can install this bundle in MailMate by opening the preferences and going to the bundles tab. After installation, go to composer settings and select Pygments from the dropdown menu of "Highlight code using" .
 
 # License
 
