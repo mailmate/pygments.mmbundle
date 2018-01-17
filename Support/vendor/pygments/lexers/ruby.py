@@ -5,7 +5,7 @@
 
     Lexers for Ruby and related languages.
 
-    :copyright: Copyright 2006-2014 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2017 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -36,7 +36,7 @@ class RubyLexer(ExtendedRegexLexer):
     name = 'Ruby'
     aliases = ['rb', 'ruby', 'duby']
     filenames = ['*.rb', '*.rbw', 'Rakefile', '*.rake', '*.gemspec',
-                 '*.rbx', '*.duby']
+                 '*.rbx', '*.duby', 'Gemfile']
     mimetypes = ['text/x-ruby', 'application/x-ruby']
 
     flags = re.DOTALL | re.MULTILINE
@@ -47,9 +47,9 @@ class RubyLexer(ExtendedRegexLexer):
 
         start = match.start(1)
         yield start, Operator, match.group(1)        # <<-?
-        yield match.start(2), String.Heredoc, match.group(2)  # quote ", ', `
-        yield match.start(3), Name.Constant, match.group(3)   # heredoc name
-        yield match.start(4), String.Heredoc, match.group(4)  # quote again
+        yield match.start(2), String.Heredoc, match.group(2)   # quote ", ', `
+        yield match.start(3), String.Delimiter, match.group(3) # heredoc name
+        yield match.start(4), String.Heredoc, match.group(4)   # quote again
 
         heredocstack = ctx.__dict__.setdefault('heredocstack', [])
         outermost = not bool(heredocstack)
@@ -74,7 +74,7 @@ class RubyLexer(ExtendedRegexLexer):
                     if check == hdname:
                         for amatch in lines:
                             yield amatch.start(), String.Heredoc, amatch.group()
-                        yield match.start(), Name.Constant, match.group()
+                        yield match.start(), String.Delimiter, match.group()
                         ctx.pos = match.end()
                         break
                     else:
@@ -190,6 +190,7 @@ class RubyLexer(ExtendedRegexLexer):
 
     tokens = {
         'root': [
+            (r'\A#!.+?$', Comment.Hashbang),
             (r'#.*?$', Comment.Single),
             (r'=begin\s.*?\n=end.*?$', Comment.Multiline),
             # keywords
@@ -256,13 +257,13 @@ class RubyLexer(ExtendedRegexLexer):
              r'(?<=(?:\s|;)when\s)|'
              r'(?<=(?:\s|;)or\s)|'
              r'(?<=(?:\s|;)and\s)|'
-             r'(?<=(?:\s|;|\.)index\s)|'
-             r'(?<=(?:\s|;|\.)scan\s)|'
-             r'(?<=(?:\s|;|\.)sub\s)|'
-             r'(?<=(?:\s|;|\.)sub!\s)|'
-             r'(?<=(?:\s|;|\.)gsub\s)|'
-             r'(?<=(?:\s|;|\.)gsub!\s)|'
-             r'(?<=(?:\s|;|\.)match\s)|'
+             r'(?<=\.index\s)|'
+             r'(?<=\.scan\s)|'
+             r'(?<=\.sub\s)|'
+             r'(?<=\.sub!\s)|'
+             r'(?<=\.gsub\s)|'
+             r'(?<=\.gsub!\s)|'
+             r'(?<=\.match\s)|'
              r'(?<=(?:\s|;)if\s)|'
              r'(?<=(?:\s|;)elsif\s)|'
              r'(?<=^when\s)|'

@@ -1,0 +1,43 @@
+# This file shows how the vendor folder has been created.
+# In theory, it can be executed, but always be careful to check everything went as planned.
+
+# Cleanup
+# sudo rm -r vendor
+# sudo rm -r /tmp/mailmate
+
+mkdir vendor
+
+# pygmentize
+mkdir -p /tmp/mailmate
+cd /tmp/mailmate/
+hg clone https://bitbucket.org/birkenfeld/pygments-main
+cd -
+mv /tmp/mailmate/pygments-main/pygments/ vendor/
+cp /tmp/mailmate/pygments-main/LICENSE vendor/pygments-license.txt
+
+cat > vendor/pygmentize << ENDL
+#!/usr/bin/python2.7
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'pygments'))
+
+from pygments.cmdline import main
+sys.exit(main())
+ENDL
+
+chmod u+x vendor/pygmentize
+
+# Extra styles
+cd /tmp/mailmate/
+git clone git://github.com/shkumagai/pygments-style-solarized
+cd -
+cat /tmp/mailmate/pygments-style-solarized//pygments_style_solarized/dark.py | sed 's/DarkStyle/SolarizeddarkStyle/' > vendor/pygments/styles/solarizeddark.py
+cat /tmp/mailmate/pygments-style-solarized//pygments_style_solarized/light.py | sed 's/LightStyle/SolarizedlightStyle/' > vendor/pygments/styles/solarizedlight.py
+cp /tmp/mailmate/pygments-style-solarized/LICENSE vendor/pygments-style-solarized-license.txt
+
+cd /tmp/mailmate/
+git clone git://github.com/hugomaiavieira/pygments-style-github.git
+cd -
+cat /tmp/mailmate/pygments-style-github/pygments_style_github/__init__.py > vendor/pygments/styles/github.py
+cp /tmp/mailmate/pygments-style-github/LICENSE vendor/pygments-style-github-license.txt

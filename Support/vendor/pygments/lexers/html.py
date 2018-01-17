@@ -5,7 +5,7 @@
 
     Lexers for HTML, XML and related markup.
 
-    :copyright: Copyright 2006-2014 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2017 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,7 +23,7 @@ from pygments.lexers.css import CssLexer, _indentation, _starts_block
 from pygments.lexers.ruby import RubyLexer
 
 __all__ = ['HtmlLexer', 'DtdLexer', 'XmlLexer', 'XsltLexer', 'HamlLexer',
-           'ScamlLexer', 'JadeLexer']
+           'ScamlLexer', 'PugLexer']
 
 
 class HtmlLexer(RegexLexer):
@@ -46,12 +46,19 @@ class HtmlLexer(RegexLexer):
             ('<!--', Comment, 'comment'),
             (r'<\?.*?\?>', Comment.Preproc),
             ('<![^>]*>', Comment.Preproc),
-            (r'<\s*script\s*', Name.Tag, ('script-content', 'tag')),
-            (r'<\s*style\s*', Name.Tag, ('style-content', 'tag')),
+            (r'(<)(\s*)(script)(\s*)',
+             bygroups(Punctuation, Text, Name.Tag, Text),
+             ('script-content', 'tag')),
+            (r'(<)(\s*)(style)(\s*)',
+             bygroups(Punctuation, Text, Name.Tag, Text),
+             ('style-content', 'tag')),
             # note: this allows tag names not used in HTML like <x:with-dash>,
             # this is to support yet-unknown template engines and the like
-            (r'<\s*[\w:.-]+', Name.Tag, 'tag'),
-            (r'<\s*/\s*[\w:.-]+\s*>', Name.Tag),
+            (r'(<)(\s*)([\w:.-]+)',
+             bygroups(Punctuation, Text, Name.Tag), 'tag'),
+            (r'(<)(\s*)(/)(\s*)([\w:.-]+)(\s*)(>)',
+             bygroups(Punctuation, Text, Punctuation, Text, Name.Tag, Text,
+                      Punctuation)),
         ],
         'comment': [
             ('[^-]+', Comment),
@@ -60,16 +67,21 @@ class HtmlLexer(RegexLexer):
         ],
         'tag': [
             (r'\s+', Text),
-            (r'([\w:-]+\s*=)(\s*)', bygroups(Name.Attribute, Text), 'attr'),
+            (r'([\w:-]+\s*)(=)(\s*)', bygroups(Name.Attribute, Operator, Text),
+             'attr'),
             (r'[\w:-]+', Name.Attribute),
-            (r'/?\s*>', Name.Tag, '#pop'),
+            (r'(/?)(\s*)(>)', bygroups(Punctuation, Text, Punctuation), '#pop'),
         ],
         'script-content': [
-            (r'<\s*/\s*script\s*>', Name.Tag, '#pop'),
+            (r'(<)(\s*)(/)(\s*)(script)(\s*)(>)',
+             bygroups(Punctuation, Text, Punctuation, Text, Name.Tag, Text,
+                      Punctuation), '#pop'),
             (r'.+?(?=<\s*/\s*script\s*>)', using(JavascriptLexer)),
         ],
         'style-content': [
-            (r'<\s*/\s*style\s*>', Name.Tag, '#pop'),
+            (r'(<)(\s*)(/)(\s*)(style)(\s*)(>)',
+             bygroups(Punctuation, Text, Punctuation, Text, Name.Tag, Text,
+                      Punctuation),'#pop'),
             (r'.+?(?=<\s*/\s*style\s*>)', using(CssLexer)),
         ],
         'attr': [
@@ -480,19 +492,19 @@ class ScamlLexer(ExtendedRegexLexer):
     }
 
 
-class JadeLexer(ExtendedRegexLexer):
+class PugLexer(ExtendedRegexLexer):
     """
-    For Jade markup.
-    Jade is a variant of Scaml, see:
+    For Pug markup.
+    Pug is a variant of Scaml, see:
     http://scalate.fusesource.org/documentation/scaml-reference.html
 
     .. versionadded:: 1.4
     """
 
-    name = 'Jade'
-    aliases = ['jade']
-    filenames = ['*.jade']
-    mimetypes = ['text/x-jade']
+    name = 'Pug'
+    aliases = ['pug', 'jade']
+    filenames = ['*.pug', '*.jade']
+    mimetypes = ['text/x-pug', 'text/x-jade']
 
     flags = re.IGNORECASE
     _dot = r'.'
@@ -587,3 +599,4 @@ class JadeLexer(ExtendedRegexLexer):
             (r'\n', Text, 'root'),
         ],
     }
+JadeLexer = PugLexer  # compat

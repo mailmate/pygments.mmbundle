@@ -5,7 +5,7 @@
 
     Lexers for automation scripting languages.
 
-    :copyright: Copyright 2006-2014 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2017 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -31,8 +31,8 @@ class AutohotkeyLexer(RegexLexer):
         'root': [
             (r'^(\s*)(/\*)', bygroups(Text, Comment.Multiline), 'incomment'),
             (r'^(\s*)(\()', bygroups(Text, Generic), 'incontinuation'),
-            (r'\s+;.*?$', Comment.Singleline),
-            (r'^;.*?$', Comment.Singleline),
+            (r'\s+;.*?$', Comment.Single),
+            (r'^;.*?$', Comment.Single),
             (r'[]{}(),;[]', Punctuation),
             (r'(in|is|and|or|not)\b', Operator.Word),
             (r'\%[a-zA-Z_#@$][\w#@$]*\%', Name.Variable),
@@ -316,7 +316,8 @@ class AutoItLexer(RegexLexer):
     tokens = {
         'root': [
             (r';.*\n', Comment.Single),
-            (r'(#comments-start|#cs).*?(#comments-end|#ce)', Comment.Multiline),
+            (r'(#comments-start|#cs)(.|\n)*?(#comments-end|#ce)',
+             Comment.Multiline),
             (r'[\[\]{}(),;]', Punctuation),
             (r'(and|or|not)\b', Operator.Word),
             (r'[$|@][a-zA-Z_]\w*', Name.Variable),

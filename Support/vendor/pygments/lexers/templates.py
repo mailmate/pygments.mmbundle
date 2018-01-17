@@ -5,7 +5,7 @@
 
     Lexers for various template engines' markup.
 
-    :copyright: Copyright 2006-2014 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2017 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -44,7 +44,7 @@ __all__ = ['HtmlPhpLexer', 'XmlPhpLexer', 'CssPhpLexer',
            'TeaTemplateLexer', 'LassoHtmlLexer', 'LassoXmlLexer',
            'LassoCssLexer', 'LassoJavascriptLexer', 'HandlebarsLexer',
            'HandlebarsHtmlLexer', 'YamlJinjaLexer', 'LiquidLexer',
-           'TwigLexer', 'TwigHtmlLexer']
+           'TwigLexer', 'TwigHtmlLexer', 'Angular2Lexer', 'Angular2HtmlLexer']
 
 
 class ErbLexer(Lexer):
@@ -251,7 +251,7 @@ class VelocityLexer(RegexLexer):
         'funcparams': [
             (r'\$\{?', Punctuation, 'variable'),
             (r'\s+', Text),
-            (r',', Punctuation),
+            (r'[,:]', Punctuation),
             (r'"(\\\\|\\"|[^"])*"', String.Double),
             (r"'(\\\\|\\'|[^'])*'", String.Single),
             (r"0[xX][0-9a-fA-F]+[Ll]?", Number),
@@ -259,6 +259,8 @@ class VelocityLexer(RegexLexer):
             (r'(true|false|null)\b', Keyword.Constant),
             (r'\(', Punctuation, '#push'),
             (r'\)', Punctuation, '#pop'),
+            (r'\{', Punctuation, '#push'),
+            (r'\}', Punctuation, '#pop'),
             (r'\[', Punctuation, '#push'),
             (r'\]', Punctuation, '#pop'),
         ]
@@ -369,7 +371,7 @@ class DjangoLexer(RegexLexer):
              r'with(?:(?:out)?\s*context)?|scoped|ignore\s+missing)\b',
              Keyword),
             (r'(loop|block|super|forloop)\b', Name.Builtin),
-            (r'[a-zA-Z][\w-]*', Name.Variable),
+            (r'[a-zA-Z_][\w-]*', Name.Variable),
             (r'\.\w+', Name.Variable),
             (r':?"(\\\\|\\"|[^"])*"', String.Double),
             (r":?'(\\\\|\\'|[^'])*'", String.Single),
@@ -568,10 +570,12 @@ class MasonLexer(RegexLexer):
     }
 
     def analyse_text(text):
-        rv = 0.0
-        if re.search('<&', text) is not None:
-            rv = 1.0
-        return rv
+        result = 0.0
+        if re.search(r'</%(class|doc|init)%>', text) is not None:
+            result = 1.0
+        elif re.search(r'<&.+&>', text, re.DOTALL) is not None:
+            result = 0.11
+        return result
 
 
 class MakoLexer(RegexLexer):
@@ -873,7 +877,7 @@ class GenshiMarkupLexer(RegexLexer):
             # yield style and script blocks as Other
             (r'<\s*(script|style)\s*.*?>.*?<\s*/\1\s*>', Other),
             (r'<\s*py:[a-zA-Z0-9]+', Name.Tag, 'pytag'),
-            (r'<\s*[a-zA-Z0-9:]+', Name.Tag, 'tag'),
+            (r'<\s*[a-zA-Z0-9:.]+', Name.Tag, 'tag'),
             include('variable'),
             (r'[<$]', Other),
         ],
@@ -1778,8 +1782,6 @@ class LassoJavascriptLexer(DelegatingLexer):
 
     def analyse_text(text):
         rv = LassoLexer.analyse_text(text) - 0.05
-        if 'function' in text:
-            rv += 0.2
         return rv
 
 
@@ -1812,8 +1814,9 @@ class HandlebarsLexer(RegexLexer):
             (r'\}\}', Comment.Preproc, '#pop'),
 
             # Handlebars
-            (r'([#/]*)(each|if|unless|else|with|log|in)', bygroups(Keyword,
+            (r'([#/]*)(each|if|unless|else|with|log|in(line)?)', bygroups(Keyword,
              Keyword)),
+            (r'#\*inline', Keyword),
 
             # General {{#block}}
             (r'([#/])([\w-]+)', bygroups(Name.Function, Name.Function)),
@@ -1821,11 +1824,37 @@ class HandlebarsLexer(RegexLexer):
             # {{opt=something}}
             (r'([\w-]+)(=)', bygroups(Name.Attribute, Operator)),
 
+            # Partials {{> ...}}
+            (r'(>)(\s*)(@partial-block)', bygroups(Keyword, Text, Keyword)),
+            (r'(#?>)(\s*)([\w-]+)', bygroups(Keyword, Text, Name.Variable)),
+            (r'(>)(\s*)(\()', bygroups(Keyword, Text, Punctuation),
+             'dynamic-partial'),
+
+            include('generic'),
+        ],
+        'dynamic-partial': [
+            (r'\s+', Text),
+            (r'\)', Punctuation, '#pop'),
+
+            (r'(lookup)(\s+)(\.|this)(\s+)', bygroups(Keyword, Text,
+                                                      Name.Variable, Text)),
+            (r'(lookup)(\s+)(\S+)', bygroups(Keyword, Text,
+                                             using(this, state='variable'))),
+            (r'[\w-]+', Name.Function),
+
+            include('generic'),
+        ],
+        'variable': [
+            (r'[a-zA-Z][\w-]*', Name.Variable),
+            (r'\.[\w-]+', Name.Variable),
+            (r'(this\/|\.\/|(\.\.\/)+)[\w-]+', Name.Variable),
+        ],
+        'generic': [
+            include('variable'),
+
             # borrowed from DjangoLexer
             (r':?"(\\\\|\\"|[^"])*"', String.Double),
             (r":?'(\\\\|\\'|[^'])*'", String.Single),
-            (r'[a-zA-Z][\w-]*', Name.Variable),
-            (r'\.[\w-]+', Name.Variable),
             (r"[0-9](\.[0-9]*)?(eE[+-][0-9])?[flFLdD]?|"
              r"0[xX][0-9a-fA-F]+[Ll]?", Number),
         ]
@@ -2172,3 +2201,83 @@ class TwigHtmlLexer(DelegatingLexer):
 
     def __init__(self, **options):
         super(TwigHtmlLexer, self).__init__(HtmlLexer, TwigLexer, **options)
+
+
+class Angular2Lexer(RegexLexer):
+    """
+    Generic
+    `angular2 <http://victorsavkin.com/post/119943127151/angular-2-template-syntax>`_
+    template lexer.
+
+    Highlights only the Angular template tags (stuff between `{{` and `}}` and
+    special attributes: '(event)=', '[property]=', '[(twoWayBinding)]=').
+    Everything else is left for a delegating lexer.
+
+    .. versionadded:: 2.1
+    """
+
+    name = "Angular2"
+    aliases = ['ng2']
+
+    tokens = {
+        'root': [
+            (r'[^{([*#]+', Other),
+
+            # {{meal.name}}
+            (r'(\{\{)(\s*)', bygroups(Comment.Preproc, Text), 'ngExpression'),
+
+            # (click)="deleteOrder()"; [value]="test"; [(twoWayTest)]="foo.bar"
+            (r'([([]+)([\w:.-]+)([\])]+)(\s*)(=)(\s*)',
+             bygroups(Punctuation, Name.Attribute, Punctuation, Text, Operator, Text),
+             'attr'),
+            (r'([([]+)([\w:.-]+)([\])]+)(\s*)',
+             bygroups(Punctuation, Name.Attribute, Punctuation, Text)),
+
+            # *ngIf="..."; #f="ngForm"
+            (r'([*#])([\w:.-]+)(\s*)(=)(\s*)',
+             bygroups(Punctuation, Name.Attribute, Punctuation, Operator), 'attr'),
+            (r'([*#])([\w:.-]+)(\s*)',
+             bygroups(Punctuation, Name.Attribute, Punctuation)),
+        ],
+
+        'ngExpression': [
+            (r'\s+(\|\s+)?', Text),
+            (r'\}\}', Comment.Preproc, '#pop'),
+
+            # Literals
+            (r':?(true|false)', String.Boolean),
+            (r':?"(\\\\|\\"|[^"])*"', String.Double),
+            (r":?'(\\\\|\\'|[^'])*'", String.Single),
+            (r"[0-9](\.[0-9]*)?(eE[+-][0-9])?[flFLdD]?|"
+             r"0[xX][0-9a-fA-F]+[Ll]?", Number),
+
+            # Variabletext
+            (r'[a-zA-Z][\w-]*(\(.*\))?', Name.Variable),
+            (r'\.[\w-]+(\(.*\))?', Name.Variable),
+
+            # inline If
+            (r'(\?)(\s*)([^}\s]+)(\s*)(:)(\s*)([^}\s]+)(\s*)',
+             bygroups(Operator, Text, String, Text, Operator, Text, String, Text)),
+        ],
+        'attr': [
+            ('".*?"', String, '#pop'),
+            ("'.*?'", String, '#pop'),
+            (r'[^\s>]+', String, '#pop'),
+        ],
+    }
+
+
+class Angular2HtmlLexer(DelegatingLexer):
+    """
+    Subclass of the `Angular2Lexer` that highlights unlexed data with the
+    `HtmlLexer`.
+
+    .. versionadded:: 2.0
+    """
+
+    name = "HTML + Angular2"
+    aliases = ["html+ng2"]
+    filenames = ['*.ng2']
+
+    def __init__(self, **options):
+        super(Angular2HtmlLexer, self).__init__(HtmlLexer, Angular2Lexer, **options)

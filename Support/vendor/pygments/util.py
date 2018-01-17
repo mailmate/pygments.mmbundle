@@ -5,7 +5,7 @@
 
     Utility functions.
 
-    :copyright: Copyright 2006-2014 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2017 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -14,7 +14,7 @@ import sys
 
 
 split_path_re = re.compile(r'[/\\ ]')
-doctype_lookup_re = re.compile(r'''(?smx)
+doctype_lookup_re = re.compile(r'''
     (<\?.*?\?>)?\s*
     <!DOCTYPE\s+(
      [a-zA-Z_][a-zA-Z0-9]*
@@ -23,8 +23,9 @@ doctype_lookup_re = re.compile(r'''(?smx)
      "[^"]*")?
      )
      [^>]*>
-''')
-tag_re = re.compile(r'<(.+?)(\s.*?)?>.*?</.+?>(?uism)')
+''', re.DOTALL | re.MULTILINE | re.VERBOSE)
+tag_re = re.compile(r'<(.+?)(\s.*?)?>.*?</.+?>',
+                    re.UNICODE | re.IGNORECASE | re.DOTALL | re.MULTILINE)
 xml_decl_re = re.compile(r'\s*<\?xml[^>]*\?>', re.I)
 
 
@@ -122,7 +123,7 @@ def make_analysator(f):
 
 
 def shebang_matches(text, regex):
-    """Check if the given regular expression matches the last part of the
+    r"""Check if the given regular expression matches the last part of the
     shebang if one exists.
 
         >>> from pygments.util import shebang_matches
@@ -160,7 +161,7 @@ def shebang_matches(text, regex):
                      if x and not x.startswith('-')][-1]
         except IndexError:
             return False
-        regex = re.compile('^%s(\.(exe|cmd|bat|bin))?$' % regex, re.IGNORECASE)
+        regex = re.compile(r'^%s(\.(exe|cmd|bat|bin))?$' % regex, re.IGNORECASE)
         if regex.search(found) is not None:
             return True
     return False
@@ -372,7 +373,7 @@ else:
     class UnclosingTextIOWrapper(TextIOWrapper):
         # Don't close underlying buffer on destruction.
         def close(self):
-            pass
+            self.flush()
 
 
 def add_metaclass(metaclass):
