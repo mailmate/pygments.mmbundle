@@ -2,21 +2,20 @@
 # In theory, it can be executed, but always be careful to check everything went as planned.
 
 # Cleanup
-# sudo rm -r vendor
-# sudo rm -r /tmp/mailmate
+# sudo rm -r vendor /tmp/mailmate
 
 mkdir vendor
 
 # pygmentize
 mkdir -p /tmp/mailmate
 cd /tmp/mailmate/
-hg clone https://bitbucket.org/birkenfeld/pygments-main
+git clone https://github.com/pygments/pygments.git
 cd -
-mv /tmp/mailmate/pygments-main/pygments/ vendor/
-cp /tmp/mailmate/pygments-main/LICENSE vendor/pygments-license.txt
+mv /tmp/mailmate/pygments/pygments/ vendor/
+cp /tmp/mailmate/pygments/LICENSE vendor/pygments-license.txt
 
 cat > vendor/pygmentize << ENDL
-#!/usr/bin/python2.7
+#!/usr/bin/python3
 
 import sys
 import os
@@ -32,8 +31,7 @@ chmod u+x vendor/pygmentize
 cd /tmp/mailmate/
 git clone git://github.com/shkumagai/pygments-style-solarized
 cd -
-cat /tmp/mailmate/pygments-style-solarized//pygments_style_solarized/dark.py | sed 's/DarkStyle/SolarizeddarkStyle/' > vendor/pygments/styles/solarizeddark.py
-cat /tmp/mailmate/pygments-style-solarized//pygments_style_solarized/light.py | sed 's/LightStyle/SolarizedlightStyle/' > vendor/pygments/styles/solarizedlight.py
+cat /tmp/mailmate/pygments-style-solarized/src/pygments_style_solarized.py | sed 's/DarkStyle/SolarizedDarkStyle/' | sed 's/LightStyle/SolarizedLightStyle/' > vendor/pygments/styles/solarized.py
 cp /tmp/mailmate/pygments-style-solarized/LICENSE vendor/pygments-style-solarized-license.txt
 
 cd /tmp/mailmate/
